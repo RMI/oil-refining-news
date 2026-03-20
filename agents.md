@@ -45,10 +45,15 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 
 ## AI use disclosure
 
-In all GitHub commits and PRs, include the following:
+When creating commits or pull requests, always disclose AI involvement using the repository’s standard metadata.
 
-- AI-Assisted: yes/no
-- AI-Tool: none | copilot-coding-agent | chatgpt | claude-code | cursor | other
-- AI-Model: none | unknown | <model-name>
-- AI-Role: none | author | editor | reviewer
-- Disclosure-Confidence: high | medium | low
+For pull requests, complete the AI use disclosure section in the PR template.
+
+For commits created directly by an agent, append these trailers to the commit message:
+
+AI-Assisted: yes
+AI-Tool: <tool-name>
+AI-Model: <model-name-or-unknown>
+AI-Role: author
+
+Use `unknown` when the model is not exposed by the tool. Do not omit these fields.
