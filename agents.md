@@ -14,15 +14,17 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 ## Main Workflow
 
 1. Read asset data from Excel or CSV.
-2. Optionally read a local tag profile file.
-3. Build keywords and tag references from the input files.
-4. Pull article summaries from Google News RSS.
-5. Apply local tagging logic.
-6. Write tagged results to Excel or CSV.
+2. Optionally load pipeline defaults from a local JSON config file.
+3. Optionally read a local tag profile file.
+4. Build keywords and tag references from the input files.
+5. Pull article summaries from Google News RSS.
+6. Apply local tagging logic.
+7. Write tagged results to Excel or CSV.
 
 ## Key Files
 
 - `main.py`: CLI entry point for the local pipeline
+- `pipeline_config.example.json`: example config file for CLI defaults
 - `google_news.py`: Google News RSS fetch and normalization helpers
 - `input_loader.py`: file loading and output writing helpers
 - `tagging.py`: local asset/tag preparation and tag matching logic

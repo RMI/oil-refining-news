@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+import sys
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -42,7 +44,63 @@ class PipelineConfig:
     lookback_max: str
     name_tolerance: int
     max_items_per_keyword: int
+    source_exclude: list[str]
     debug: bool
+
+
+def default_lookback_min() -> str:
+    return (date.today() - timedelta(days=30)).strftime("%Y-%m-%d")
+
+
+def default_lookback_max() -> str:
+    return date.today().strftime("%Y-%m-%d")
+
+
+def load_config_file(path: str | None) -> dict:
+    if path is None:
+        return {}
+
+    config_path = Path(path)
+    with config_path.open("r", encoding="utf-8") as handle:
+        loaded = json.load(handle)
+
+    if not isinstance(loaded, dict):
+        raise ValueError(f"Config file must contain a JSON object: {config_path}")
+
+    allowed_keys = {
+        "asset_file",
+        "output",
+        "tag_profile",
+        "asset_types",
+        "geography",
+        "lookback_min",
+        "lookback_max",
+        "name_tolerance",
+        "max_items_per_keyword",
+        "source_exclude",
+        "debug",
+    }
+    unknown_keys = sorted(set(loaded).difference(allowed_keys))
+    if unknown_keys:
+        raise ValueError(f"Unsupported config keys in {config_path}: {unknown_keys}")
+
+    return loaded
+
+
+def build_argument_defaults(config_values: dict) -> dict:
+    return {
+        "asset_file": config_values.get("asset_file"),
+        "output": config_values.get("output"),
+        "tag_profile": config_values.get("tag_profile"),
+        "asset_types": config_values.get("asset_types"),
+        "geography": config_values.get("geography", DEFAULT_GEOGRAPHY),
+        "lookback_min": config_values.get("lookback_min", default_lookback_min()),
+        "lookback_max": config_values.get("lookback_max", default_lookback_max()),
+        "name_tolerance": config_values.get("name_tolerance", 2),
+        "max_items_per_keyword": config_values.get("max_items_per_keyword", 10),
+        "source_exclude": config_values.get("source_exclude", DEFAULT_SOURCE_EXCLUDE),
+        "debug": config_values.get("debug", False),
+    }
 
 
 def fetch_google_news(keywords: list[str], lookback_min: str, lookback_max: str, max_items_per_keyword: int) -> pd.DataFrame:
@@ -116,7 +174,7 @@ def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
         processed = post_process_matches(
             df=tagged,
             asset_type=asset_type,
-            source_exclude=DEFAULT_SOURCE_EXCLUDE,
+            source_exclude=config.source_exclude,
         )
         processed.insert(0, "asset_type", asset_type)
         final_frames.append(processed)
@@ -130,43 +188,78 @@ def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
     return final_df
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser(defaults: dict) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Local-only Google News RSS tagging pipeline for refinery and petchem asset files."
     )
-    parser.add_argument("--asset-file", required=True, help="Path to the asset workbook or CSV input.")
-    parser.add_argument("--output", required=True, help="Path to the tagged output file (.xlsx or .csv).")
-    parser.add_argument("--tag-profile", help="Optional local tag profile file with tag_cat, tag, and phrase columns.")
+    parser.add_argument("--config", help="Optional path to a JSON config file for default pipeline settings.")
+    parser.add_argument("--asset-file", default=defaults["asset_file"], help="Path to the asset workbook or CSV input.")
+    parser.add_argument("--output", default=defaults["output"], help="Path to the tagged output file (.xlsx or .csv).")
+    parser.add_argument(
+        "--tag-profile",
+        default=defaults["tag_profile"],
+        help="Tag profile file with tag_cat, tag, and phrase columns.",
+    )
     parser.add_argument(
         "--asset-types",
         nargs="+",
         choices=["refinery", "petchem"],
+        default=defaults["asset_types"],
         help="Optional subset of asset types to run.",
     )
     parser.add_argument(
         "--geography",
         nargs="+",
-        default=DEFAULT_GEOGRAPHY,
+        default=defaults["geography"],
         help="Optional list of countries to retain from the asset input.",
     )
     parser.add_argument(
         "--lookback-min",
-        default=(date.today() - timedelta(days=30)).strftime("%Y-%m-%d"),
+        default=defaults["lookback_min"],
         help="Inclusive lower bound for Google News article dates, formatted as YYYY-MM-DD.",
     )
     parser.add_argument(
         "--lookback-max",
-        default=date.today().strftime("%Y-%m-%d"),
+        default=defaults["lookback_max"],
         help="Inclusive upper bound for Google News article dates, formatted as YYYY-MM-DD.",
     )
-    parser.add_argument("--name-tolerance", type=int, default=2, help="Number of words to keep for asset-name tag phrases.")
-    parser.add_argument("--max-items-per-keyword", type=int, default=10, help="Maximum RSS items to keep per keyword.")
-    parser.add_argument("--debug", action="store_true", help="Limit keyword processing to the first 5 keywords.")
+    parser.add_argument(
+        "--name-tolerance",
+        type=int,
+        default=defaults["name_tolerance"],
+        help="Number of words to keep for asset-name tag phrases.",
+    )
+    parser.add_argument(
+        "--max-items-per-keyword",
+        type=int,
+        default=defaults["max_items_per_keyword"],
+        help="Maximum RSS items to keep per keyword.",
+    )
+    parser.add_argument(
+        "--source-exclude",
+        nargs="+",
+        default=defaults["source_exclude"],
+        help="Optional list of sources to exclude from the tagged results.",
+    )
+    debug_group = parser.add_mutually_exclusive_group()
+    debug_group.add_argument("--debug", dest="debug", action="store_true", help="Limit keyword processing to the first 5 keywords.")
+    debug_group.add_argument("--no-debug", dest="debug", action="store_false", help="Process the full keyword list.")
+    parser.set_defaults(debug=defaults["debug"])
     return parser
 
 
 def main() -> None:
-    args = build_parser().parse_args()
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument("--config")
+    config_args, _ = config_parser.parse_known_args(sys.argv[1:])
+
+    file_config = load_config_file(config_args.config)
+    args = build_parser(build_argument_defaults(file_config)).parse_args()
+    if not args.asset_file:
+        raise SystemExit("--asset-file is required either in the CLI or the config file.")
+    if not args.output:
+        raise SystemExit("--output is required either in the CLI or the config file.")
+
     config = PipelineConfig(
         asset_file=args.asset_file,
         output=args.output,
@@ -177,6 +270,7 @@ def main() -> None:
         lookback_max=args.lookback_max,
         name_tolerance=args.name_tolerance,
         max_items_per_keyword=args.max_items_per_keyword,
+        source_exclude=args.source_exclude,
         debug=args.debug,
     )
     final_df = run_pipeline(config)

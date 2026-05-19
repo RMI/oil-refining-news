@@ -3,8 +3,6 @@ Local-only pipeline for identifying Google News RSS articles related to oil refi
 
 ## What It Does
 
-The refactored project:
-
 - reads asset inputs from `.xlsx`, `.xls`, or `.csv`
 - optionally reads a local tag profile file
 - pulls summary content from Google News RSS for each keyword
@@ -39,6 +37,32 @@ Run the supported CLI:
 python main.py --asset-file .\assets.xlsx --tag-profile .\tag-profile.xlsx --output .\output\tagged-google-news.xlsx
 ```
 
+Or keep the defaults in a local config file and reference that from the CLI:
+
+```powershell
+python main.py --config .\pipeline_config.json
+```
+
+CLI flags still override config file values for one-off runs:
+
+```powershell
+python main.py --config .\pipeline_config.json --geography "United States" Canada --debug
+```
+
+Use [pipeline_config.example.json](./pipeline_config.example.json) as a starting point. Supported config keys are:
+
+- `asset_file`
+- `output`
+- `tag_profile`
+- `asset_types`
+- `geography`
+- `lookback_min`
+- `lookback_max`
+- `name_tolerance`
+- `max_items_per_keyword`
+- `source_exclude`
+- `debug`
+
 ## Output
 
 The output file includes tagged Google News rows with fields such as:
@@ -57,3 +81,4 @@ The output file includes tagged Google News rows with fields such as:
 - Azure resources and MySQL are no longer required.
 - The only supported entry point is `main.py`.
 - The project runs fully from local files plus Google News RSS.
+- JSON config files are optional; direct CLI usage still works.
