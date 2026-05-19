@@ -15,7 +15,7 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 
 1. Read asset data from Excel or CSV.
 2. Optionally load pipeline defaults from a local JSON config file.
-3. Optionally read a local tag profile file.
+3. Read a required local tag profile file.
 4. Build keywords and tag references from the input files.
 5. Pull article summaries from Google News RSS.
 6. Apply local tagging logic.
@@ -28,6 +28,11 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 - `google_news.py`: Google News RSS fetch and normalization helpers
 - `input_loader.py`: file loading and output writing helpers
 - `tagging.py`: local asset/tag preparation and tag matching logic
+
+## Input Schema
+
+- Prefer standardized asset columns such as `ID`, `Name`, `Country`, `Owner`, `State`, `Location`, and `Region`.
+- Legacy headers and sheet names are still accepted at load time, but documentation should use the standardized schema.
 
 ## Setup
 

@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from google_news import get_recent_articles
-from input_loader import load_asset_frames, load_optional_tag_profile, write_table
+from input_loader import load_asset_frames, load_tag_profile, write_table
 from tagging import (
     build_petchem_inputs,
     build_refinery_inputs,
@@ -37,7 +37,7 @@ DEFAULT_SOURCE_EXCLUDE = [
 class PipelineConfig:
     asset_file: str
     output: str
-    tag_profile: str | None
+    tag_profile: str
     asset_types: list[str] | None
     geography: list[str]
     lookback_min: str
@@ -128,8 +128,8 @@ def fetch_google_news(keywords: list[str], lookback_min: str, lookback_max: str,
 
 
 def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
-    asset_frames = load_asset_frames(config.asset_file)
-    extra_tags = load_optional_tag_profile(config.tag_profile)
+    asset_frames = load_asset_frames(config.asset_file, requested_asset_types=config.asset_types)
+    extra_tags = load_tag_profile(config.tag_profile)
 
     requested_types = config.asset_types or list(asset_frames.keys())
     final_frames: list[pd.DataFrame] = []
@@ -198,7 +198,7 @@ def build_parser(defaults: dict) -> argparse.ArgumentParser:
     parser.add_argument(
         "--tag-profile",
         default=defaults["tag_profile"],
-        help="Tag profile file with tag_cat, tag, and phrase columns.",
+        help="Required tag profile file with tag_cat, tag, and phrase columns.",
     )
     parser.add_argument(
         "--asset-types",
@@ -259,6 +259,8 @@ def main() -> None:
         raise SystemExit("--asset-file is required either in the CLI or the config file.")
     if not args.output:
         raise SystemExit("--output is required either in the CLI or the config file.")
+    if not args.tag_profile:
+        raise SystemExit("--tag-profile is required either in the CLI or the config file.")
 
     config = PipelineConfig(
         asset_file=args.asset_file,
