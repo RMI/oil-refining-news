@@ -30,10 +30,7 @@ def write_table(df: pd.DataFrame, path: str | Path) -> None:
     df.to_excel(path, index=False)
 
 
-def load_optional_tag_profile(path: str | Path | None) -> pd.DataFrame | None:
-    if path is None:
-        return None
-
+def load_tag_profile(path: str | Path) -> pd.DataFrame:
     df = read_table(path)
     required = {"tag_cat", "tag", "phrase"}
     missing = required.difference(df.columns)

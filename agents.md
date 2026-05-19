@@ -15,7 +15,7 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 
 1. Read asset data from Excel or CSV.
 2. Optionally load pipeline defaults from a local JSON config file.
-3. Optionally read a local tag profile file.
+3. Read a required local tag profile file.
 4. Build keywords and tag references from the input files.
 5. Pull article summaries from Google News RSS.
 6. Apply local tagging logic.

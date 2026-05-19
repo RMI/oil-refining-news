@@ -4,7 +4,7 @@ Local-only pipeline for identifying Google News RSS articles related to oil refi
 ## What It Does
 
 - reads asset inputs from `.xlsx`, `.xls`, or `.csv`
-- optionally reads a local tag profile file
+- reads a required local tag profile file
 - pulls summary content from Google News RSS for each keyword
 - applies local tagging logic without Azure, MySQL, or VPN access
 - writes a tagged output file in Excel or CSV format
@@ -25,9 +25,12 @@ Supported asset inputs:
 - Excel workbooks with `RefiningAsset` and/or `SteamCracker` sheets
 - CSV files that contain either refinery columns such as `Refinery #ID` and `Name`, or petchem columns such as `PetchemID` and `Company`
 
-Optional tag profile input:
+Required tag profile input:
 
 - a local Excel or CSV file with columns `tag_cat`, `tag`, and `phrase`
+- this file is a core part of the tagging workflow and is required for every run
+
+Field-level details for supported input and output files are documented in [DATA_DICTIONARY.md](./DATA_DICTIONARY.md).
 
 ## Run
 
@@ -82,3 +85,4 @@ The output file includes tagged Google News rows with fields such as:
 - The only supported entry point is `main.py`.
 - The project runs fully from local files plus Google News RSS.
 - JSON config files are optional; direct CLI usage still works.
+- The tag profile file is required because the tagging layer is a key value add in the output.

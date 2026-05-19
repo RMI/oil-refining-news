@@ -164,4 +164,8 @@ cython_debug/
 *.env
 *.key
 *.xls
-*.xlsx
+tagProfile.xlsx
+tag_ref.xlsx
+OG_AssetsFull.xlsx
+Tag Profile_emissionMitigation.xlsx
+tempData/tagged_google_news.xlsx
