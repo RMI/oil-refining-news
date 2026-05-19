@@ -1,0 +1,22 @@
+{
+  "asset_file": "OG_AssetsFull.xlsx",
+  "output": "tempData/tagged_google_news.xlsx",
+  "tag_profile": "tagProfile.xlsx",
+  "asset_types": ["refinery", "petchem"],
+  "geography": ["United States of America", "United States", "Mexico", "Canada"],
+  "lookback_min": "2026-04-19",
+  "lookback_max": "2026-05-19",
+  "name_tolerance": 2,
+  "max_items_per_keyword": 10,
+  "source_exclude": [
+    "BioMed Central",
+    "ACS Applied Materials and Interfaces",
+    "Springer",
+    "Elsevier Journals",
+    "Science",
+    "The New Yorker",
+    "Nature",
+    "MIT Sloan Management Review"
+  ],
+  "debug": false
+}
