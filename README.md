@@ -3,11 +3,11 @@ Local-only pipeline for identifying Google News RSS articles related to oil refi
 
 ## What It Does
 
-- reads asset inputs from `.xlsx`, `.xls`, or `.csv`
-- reads a required local tag profile file
-- pulls summary content from Google News RSS for each keyword
-- applies local tagging logic without Azure, MySQL, or VPN access
-- writes a tagged output file in Excel or CSV format
+- Reads asset inputs from `.xlsx` or `.xls`
+- Reads a required local tag profile file
+- Pulls summary content from Google News RSS for each keyword
+- Applies local tagging logic without Azure, MySQL, or VPN access
+- Writes a tagged output file in Excel or CSV format
 
 ## Setup
 
@@ -23,8 +23,6 @@ Local-only pipeline for identifying Google News RSS articles related to oil refi
 Supported asset inputs:
 
 - Excel workbooks with `Refinery` and/or `Petchem` sheets
-- CSV files that use standardized asset columns such as refinery `ID`, `Name`, `Country`, `State`, `Owner` or petchem `ID`, `Name`, `Country`, `Owner`, `Location`, `Region`
-- legacy sheet names such as `RefiningAsset` and `SteamCracker`, and legacy columns such as `Refinery #ID`, `PetchemID`, `Company`, `Primary Owner`, `Ownership`, and `TRACE region`, are still accepted and mapped to the standardized schema automatically
 
 Required tag profile input:
 
@@ -35,16 +33,32 @@ Field-level details for supported input and output files are documented in [DATA
 
 ## Run
 
-Run the supported CLI:
+Set your configuration file. Use [pipeline_config.example.json](./pipeline_config.example.json) as a starting point. 
 
-```powershell
-python main.py --asset-file .\assets.xlsx --tag-profile .\tag-profile.xlsx --output .\output\tagged-google-news.xlsx
-```
+Supported config keys are:
+
+- `asset_file`: File path to asset file
+- `output`: Target output filename
+- `tag_profile`: Tag profile file path
+- `asset_types`: Asset types you want included in the run
+- `geography`: Target geographies if providing and asset file with geography included
+- `lookback_min`: Start date of your target period
+- `lookback_max`: End date of your target period
+- `name_tolerance`: How many words from each asset name should be included for keyword searches
+- `max_items_per_keyword`: How many search results to return per asset
+- `source_exclude`: Names of any publications to exclude from output
+
 
 Or keep the defaults in a local config file and reference that from the CLI:
 
 ```powershell
 python main.py --config .\pipeline_config.json
+```
+
+Or run the supported CLI with default configuration:
+
+```powershell
+python main.py --asset-file .\assets.xlsx --tag-profile .\tag-profile.xlsx --output .\output\tagged-google-news.xlsx
 ```
 
 CLI flags still override config file values for one-off runs:
@@ -53,19 +67,7 @@ CLI flags still override config file values for one-off runs:
 python main.py --config .\pipeline_config.json --geography "United States" Canada --debug
 ```
 
-Use [pipeline_config.example.json](./pipeline_config.example.json) as a starting point. Supported config keys are:
 
-- `asset_file`
-- `output`
-- `tag_profile`
-- `asset_types`
-- `geography`
-- `lookback_min`
-- `lookback_max`
-- `name_tolerance`
-- `max_items_per_keyword`
-- `source_exclude`
-- `debug`
 
 ## Output
 
