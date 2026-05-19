@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from functions import get_recent_articles
+from google_news import get_recent_articles
 from input_loader import load_asset_frames, load_optional_tag_profile, write_table
 from tagging import (
     build_petchem_inputs,
@@ -51,8 +51,8 @@ def fetch_google_news(keywords: list[str], lookback_min: str, lookback_max: str,
         print(f"Getting Google News for keyword: {keyword}")
         keyword_df = get_recent_articles(
             keyword,
-            lookbackMinDate=lookback_min,
-            lookbackMaxDate=lookback_max,
+            lookback_min_date=lookback_min,
+            lookback_max_date=lookback_max,
             max_items=max_items_per_keyword,
             max_url_length=4000,
         )

@@ -33,16 +33,10 @@ Optional tag profile input:
 
 ## Run
 
-Run the CLI directly:
+Run the supported CLI:
 
 ```powershell
-python main.py --asset-file OG_AssetsFull.xlsx --tag-profile tagProfile.xlsx --output tempData/tagged_google_news.xlsx
-```
-
-Or use the compatibility script:
-
-```powershell
-python newsCompiler.py
+python main.py --asset-file .\assets.xlsx --tag-profile .\tag-profile.xlsx --output .\output\tagged-google-news.xlsx
 ```
 
 ## Output
@@ -61,5 +55,5 @@ The output file includes tagged Google News rows with fields such as:
 ## Notes
 
 - Azure resources and MySQL are no longer required.
-- `cred.env` is no longer used by the application.
-- The project now runs fully from local files plus Google News RSS.
+- The only supported entry point is `main.py`.
+- The project runs fully from local files plus Google News RSS.

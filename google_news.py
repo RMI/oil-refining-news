@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import datetime as dt
 import html
-from typing import Optional
+
 import feedparser
 import pandas as pd
 from bs4 import BeautifulSoup
 from dateutil import parser
-from tagging import tag_articles
 
 
-def clean_description(desc_html: Optional[str]) -> Optional[str]:
+def clean_description(desc_html: str | None) -> str | None:
     if not desc_html:
         return None
     desc_html = html.unescape(desc_html)
@@ -21,8 +20,8 @@ def clean_description(desc_html: Optional[str]) -> Optional[str]:
 def google_articles(
     query: str,
     max_url_length: int = 4000,
-    lookback_min_date: Optional[str] = None,
-    lookback_max_date: Optional[str] = None,
+    lookback_min_date: str | None = None,
+    lookback_max_date: str | None = None,
 ) -> list[dict]:
     query = query.replace(" ", "+")
 
@@ -37,7 +36,7 @@ def google_articles(
     )
     feed = feedparser.parse(url)
 
-    items = []
+    items: list[dict] = []
     for entry in feed.entries:
         link = entry.get("link")
         if not link or len(link) > max_url_length:
@@ -69,21 +68,21 @@ def normalize_date(date_value: str) -> str:
 
 def get_recent_articles(
     query: str,
-    lookbackMinDate: Optional[str] = None,
-    lookbackMaxDate: Optional[str] = None,
+    lookback_min_date: str | None = None,
+    lookback_max_date: str | None = None,
     max_items: int = 100,
     max_url_length: int = 4000,
 ) -> pd.DataFrame:
-    if lookbackMinDate is None:
-        lookbackMinDate = (dt.datetime.now() - dt.timedelta(days=7)).strftime("%Y-%m-%d")
-    if lookbackMaxDate is None:
-        lookbackMaxDate = dt.datetime.now().strftime("%Y-%m-%d")
+    if lookback_min_date is None:
+        lookback_min_date = (dt.datetime.now() - dt.timedelta(days=7)).strftime("%Y-%m-%d")
+    if lookback_max_date is None:
+        lookback_max_date = dt.datetime.now().strftime("%Y-%m-%d")
 
     articles = google_articles(
         query,
         max_url_length=max_url_length,
-        lookback_min_date=lookbackMinDate,
-        lookback_max_date=lookbackMaxDate,
+        lookback_min_date=lookback_min_date,
+        lookback_max_date=lookback_max_date,
     )
 
     recent_articles = []
@@ -96,32 +95,11 @@ def get_recent_articles(
         except Exception:
             continue
 
-        min_dt = dt.datetime.strptime(lookbackMinDate, "%Y-%m-%d")
-        max_dt = dt.datetime.strptime(lookbackMaxDate, "%Y-%m-%d")
+        min_dt = dt.datetime.strptime(lookback_min_date, "%Y-%m-%d")
+        max_dt = dt.datetime.strptime(lookback_max_date, "%Y-%m-%d")
         if min_dt < published_dt <= max_dt:
             article["published"] = normalize_date(published)
             recent_articles.append(article)
 
     recent_articles.sort(key=lambda item: item["published"], reverse=True)
     return pd.DataFrame(recent_articles[:max_items])
-
-
-def func_tagging(
-    df: Optional[pd.DataFrame] = None,
-    useTags: bool = True,
-    tagType: str = "research",
-    tag_profile: Optional[str] = None,
-    tag_adds: Optional[pd.DataFrame] = None,
-    lookbackMin=None,
-    lookbackMax=None,
-) -> pd.DataFrame:
-    if df is None:
-        raise ValueError("Local-only mode requires a dataframe input.")
-    if not useTags or tag_adds is None:
-        raise ValueError("Local-only mode requires a tag reference dataframe via tag_adds.")
-    if tag_profile is not None:
-        print(f"Ignoring tag_profile '{tag_profile}' in local-only mode.")
-    if lookbackMin is not None or lookbackMax is not None:
-        print("Ignoring lookback parameters in func_tagging because the caller already provides the dataframe.")
-
-    return tag_articles(df=df, tag_ref=tag_adds, tag_type=tagType)

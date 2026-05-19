@@ -23,8 +23,7 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 ## Key Files
 
 - `main.py`: CLI entry point for the local pipeline
-- `newsCompiler.py`: compatibility script with editable defaults
-- `functions.py`: Google RSS fetch helpers and compatibility wrapper for tagging
+- `google_news.py`: Google News RSS fetch and normalization helpers
 - `input_loader.py`: file loading and output writing helpers
 - `tagging.py`: local asset/tag preparation and tag matching logic
 
