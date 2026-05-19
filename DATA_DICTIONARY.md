@@ -14,18 +14,14 @@ Purpose: provides the refinery and/or petchem asset records used to build Google
 
 Supported formats:
 
-- `.xlsx` or `.xls`
-- `.csv`
+- `.xlsx`
+- `.xls`
 
 Workbook behavior:
 
-- If the workbook contains a `RefiningAsset` sheet, that sheet is treated as refinery input.
-- If the workbook contains a `SteamCracker` sheet, that sheet is treated as petchem input.
-- If neither sheet exists, the first sheet is loaded and the asset type is inferred from its columns.
+- If the workbook contains a `Refining` sheet, that sheet is treated as refinery input.
+- If the workbook contains a `Petrochemical` sheet, that sheet is treated as petrochemical plant input.
 
-CSV behavior:
-
-- A CSV must contain columns that allow the pipeline to infer either refinery or petchem input.
 
 ### Refinery Asset Fields
 
@@ -33,22 +29,22 @@ Required for refinery input:
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `Refinery #ID` | Yes for workbook/CSV refinery inputs unless the file already uses `id` | Unique refinery identifier. Placeholder: confirm whether this is an internal master asset ID. |
-| `id` | Yes for refinery inputs that do not use `Refinery #ID` | Normalized refinery identifier used internally by the pipeline. Placeholder: confirm whether partners should ever supply this directly. |
-| `Name` | Yes | Refinery name used to generate Google News search keywords. Placeholder: confirm whether this should be the common site name, legal entity name, or another naming convention. |
+| `ID` | Yes | Unique refinery identifier. |
+| `Name` | Yes | Refinery name used to generate Google News search keywords. |
 
-Optional refinery fields observed in sample workbook:
+Optional refinery fields:
 
 | Field | Required | Description |
 | --- | --- | --- |
 | `Country` | No | Country filter field used when `--geography` is provided. |
-| `State` | No | Placeholder: geographic subdivision for the refinery record. |
-| `Primary Owner` | No | Placeholder: primary owning company for the refinery asset. |
+| `State` | No | Geographic subdivision for the refinery record. |
+| `Owner` | No | Primary owning company for the refinery asset. |
 
 Notes:
 
 - All refinery columns are converted into candidate asset tags during processing, not just the required fields.
-- The `Name` value is shortened to the first `name_tolerance` words when building one set of name-based tags.
+- The `Name` value is shortened to the first `name_tolerance` words when building one set of name-based tags. `name_tolerance` can be set in your configuration file or left as the default value of 2.
+- Legacy aliases mapped to this schema include `Refinery #ID`, `Refinery # ID`, `id`, and `Primary Owner`.
 
 ### Petchem Asset Fields
 
@@ -56,22 +52,23 @@ Required for petchem input:
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `PetchemID` | Yes | Unique petchem asset identifier. Placeholder: confirm whether this is an internal master asset ID. |
-| `Company` | Yes | Company or asset label used to generate Google News search keywords. Placeholder: confirm the intended naming convention for external partners. |
+| `ID` | Yes | Unique petchem asset identifier. |
+| `Name` | Yes | Petrochemical company label used to generate Google News search keywords. |
 
-Optional petchem fields observed in sample workbook:
+Optional petchem fields:
 
 | Field | Required | Description |
 | --- | --- | --- |
 | `Country` | No | Country filter field used when `--geography` is provided. |
-| `Ownership` | No | Placeholder: ownership description for the petchem asset. |
-| `Location` | No | Placeholder: asset location description. |
-| `TRACE region` | No | Placeholder: region classification used by the source dataset. |
+| `Owner` | No | Full ownership mix for the facility. |
+| `Location` | No | City/State/Geographic subdivision of the facility. |
+| `Region` | No | Climate TRACE Region of the facility. |
 
 Notes:
 
-- The pipeline uses `Company` values as Google News search keywords.
-- `PetchemID`, `Company`, and `Country` are used to build asset tags when present.
+- The pipeline uses `Name` values as Google News search keywords.
+- `ID`, `Name`, and `Country` are used to build asset tags when present.
+- Legacy aliases mapped to this schema include `PetchemID`, `Petchem ID`, `Company`, `Ownership`, and `TRACE region`.
 
 ## Tag Profile File
 
@@ -87,9 +84,9 @@ Required fields:
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `tag_cat` | Yes | Tag category name. This becomes a column in the intermediate tagged article dataframe. Placeholder: confirm the standard category naming conventions partners should follow. |
-| `tag` | Yes | Output tag value written into the final `tags` field when the phrase matches. Placeholder: confirm formatting rules such as spaces, casing, and separators. |
-| `phrase` | Yes | Match phrase searched for in article title and description text. Matching is case-insensitive. Placeholder: confirm whether phrases should be exact names, aliases, keywords, or all of the above. |
+| `tag category` | Yes | Tag category name. This becomes a column in the intermediate tagged article dataframe. New categories can be added, as necessary. |
+| `tag` | Yes | Output tag value written into the final `tags` field when the phrase matches. |
+| `phrase` | Yes | Match phrase searched for in article title and description text. Matching is case-insensitive. Phrases should be subsets or aliases of a tag to increase the likelihood of a match. |
 
 Notes:
 
@@ -123,9 +120,13 @@ Conditional output fields:
 | Field | Expected | Description |
 | --- | --- | --- |
 | `asset_id` | Sometimes | Asset identifier extracted when the row matched a refinery or petchem asset-name/company tag. |
-| `asset_Name` | Sometimes | Asset or company name extracted from the matched asset tag. Placeholder: confirm whether this output label should remain `asset_Name` for both refinery and petchem rows. |
-| `asset_Country` | Sometimes | Asset country tag match carried through when present in the tag reference. |
-| Other `asset_*` or custom tag category columns | Sometimes | Intermediate category match columns may appear depending on which tag categories survive post-processing. Placeholder: confirm which of these should be considered supported output fields for partners. |
+| `asset_name` | Sometimes | Asset or company name extracted from the matched asset tag. |
+| `asset_country` | Sometimes | Asset country tag match carried through when present in the tag reference. |
+| `asset_owner` | Sometimes | Asset owner tag match carried through when present in the tag reference. |
+| `asset_state` | Sometimes | Refinery state tag match carried through when present in the tag reference. |
+| `asset_location` | Sometimes | Petchem location tag match carried through when present in the tag reference. |
+| `asset_region` | Sometimes | Petchem region tag match carried through when present in the tag reference. |
+| Other `asset_*` or custom tag category columns | Sometimes | Intermediate category match columns may appear depending on which tag categories survive post-processing. |
 
 Notes:
 
@@ -137,9 +138,10 @@ Notes:
 These sample files help illustrate the supported shapes:
 
 - `OG_AssetsFull.xlsx`
-  - `RefiningAsset` columns: `Refinery #ID`, `Name`, `Country`, `State`, `Primary Owner`
-  - `SteamCracker` columns: `PetchemID`, `Country`, `Company`, `Ownership`, `Location`, `TRACE region`
+  - Legacy `RefiningAsset` columns: `Refinery #ID`, `Name`, `Country`, `State`, `Primary Owner`
+  - Legacy `SteamCracker` columns: `PetchemID`, `Country`, `Company`, `Ownership`, `Location`, `TRACE region`
+  - Canonical equivalents: `ID`, `Name`, `Country`, `State`, `Owner` for refinery and `ID`, `Name`, `Country`, `Owner`, `Location`, `Region` for petchem
 - `tagProfile.xlsx`
-  - Columns: `tag`, `phrase`, `tag_cat`
+  - Columns: `tag`, `phrase`, `tag category`
 - `Tag Profile_emissionMitigation.xlsx`
-  - Columns: `tag_cat`, `tag`, `phrase`
+  - Columns: `tag category`, `tag`, `phrase`

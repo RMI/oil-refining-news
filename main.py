@@ -128,7 +128,7 @@ def fetch_google_news(keywords: list[str], lookback_min: str, lookback_max: str,
 
 
 def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
-    asset_frames = load_asset_frames(config.asset_file)
+    asset_frames = load_asset_frames(config.asset_file, requested_asset_types=config.asset_types)
     extra_tags = load_tag_profile(config.tag_profile)
 
     requested_types = config.asset_types or list(asset_frames.keys())

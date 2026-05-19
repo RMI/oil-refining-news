@@ -29,6 +29,11 @@ Keep this project as a local-only Google News RSS tagging pipeline.
 - `input_loader.py`: file loading and output writing helpers
 - `tagging.py`: local asset/tag preparation and tag matching logic
 
+## Input Schema
+
+- Prefer standardized asset columns such as `ID`, `Name`, `Country`, `Owner`, `State`, `Location`, and `Region`.
+- Legacy headers and sheet names are still accepted at load time, but documentation should use the standardized schema.
+
 ## Setup
 
 1. `python -m venv .venv`
