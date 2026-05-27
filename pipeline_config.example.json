@@ -1,5 +1,5 @@
 {
-  "asset_file": "OG_AssetsFull.xlsx",
+  "asset_file": "AssetInput.xlsx",
   "output": "tempData/tagged_google_news.xlsx",
   "tag_profile": "tagProfile.xlsx",
   "asset_types": ["refinery", "petchem"],
@@ -9,13 +9,6 @@
   "name_tolerance": 2,
   "max_items_per_keyword": 10,
   "source_exclude": [
-    "BioMed Central",
-    "ACS Applied Materials and Interfaces",
-    "Springer",
-    "Elsevier Journals",
-    "Science",
-    "The New Yorker",
-    "Nature",
-    "MIT Sloan Management Review"
+    "BioMed Central"
   ]
 }

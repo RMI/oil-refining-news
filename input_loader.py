@@ -1,17 +1,22 @@
 from __future__ import annotations
+
 from pathlib import Path
+
 import pandas as pd
 
 
 COLUMN_ALIASES = {
     "ID": ["ID", "id", "Refinery #ID", "Refinery # ID"],
     "Name": ["Name"],
-    "Owner": ["Owner","Ownership", "Primary Owner"],
+    "Owner": ["Owner", "Ownership", "Primary Owner"],
     "Country": ["Country"],
     "Subdivision": ["Geographic Subdivision", "State", "Province"],
     "Region": ["Region", "TRACE Region", "Climate TRACE Region"],
 }
 
+
+def normalize_asset_type_name(asset_type: str) -> str:
+    return str(asset_type).strip().lower()
 
 
 def read_table(path: str | Path, sheet_name: str | None = None) -> pd.DataFrame:
@@ -65,7 +70,10 @@ def normalize_asset_columns(df: pd.DataFrame, asset_type: str) -> pd.DataFrame:
     return _rename_columns(df, aliases)
 
 
-def load_asset_frames(asset_path: str | Path, requested_asset_types: list[str] | None = None) -> dict[str, pd.DataFrame]:
+def load_asset_frames(
+    asset_path: str | Path,
+    requested_asset_types: list[str] | None = None,
+) -> dict[str, pd.DataFrame]:
     asset_path = Path(asset_path)
     suffix = asset_path.suffix.lower()
 
@@ -74,11 +82,20 @@ def load_asset_frames(asset_path: str | Path, requested_asset_types: list[str] |
 
     workbook = pd.ExcelFile(asset_path)
     frames: dict[str, pd.DataFrame] = {}
+    requested = (
+        {normalize_asset_type_name(asset_type) for asset_type in requested_asset_types}
+        if requested_asset_types
+        else None
+    )
 
     for sheet_name in workbook.sheet_names:
-        if requested_asset_types and sheet_name not in requested_asset_types:
+        asset_type = normalize_asset_type_name(sheet_name)
+        if requested and asset_type not in requested:
             continue
-        frames[sheet_name] = normalize_asset_columns(pd.read_excel(asset_path, sheet_name=sheet_name), sheet_name.lower())
+        frames[asset_type] = normalize_asset_columns(
+            pd.read_excel(asset_path, sheet_name=sheet_name),
+            asset_type,
+        )
 
     if frames:
         return frames

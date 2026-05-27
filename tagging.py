@@ -110,6 +110,23 @@ def tag_articles(df: pd.DataFrame, tag_ref: pd.DataFrame, tag_type: str = "resea
     return news
 
 
+def _split_asset_name_matches(df: pd.DataFrame, asset_col: str = "asset_name") -> pd.DataFrame:
+    result = df.copy()
+    if asset_col not in result.columns:
+        return result
+
+    asset_matches = result[asset_col].fillna("").astype(str)
+    match_mask = asset_matches != ""
+    if match_mask.any():
+        split_values = asset_matches[match_mask].str.split("_", n=1, expand=True)
+        result.loc[match_mask, "asset_id"] = split_values[0].values
+        result.loc[match_mask, "asset_name"] = split_values[1].str.split("_").str[0].values
+    else:
+        result["asset_id"] = result.get("asset_id", np.nan)
+
+    return result
+
+
 def post_process_matches(
     df: pd.DataFrame,
     asset_type: str,
@@ -124,41 +141,29 @@ def post_process_matches(
     if source_exclude and "source" in result.columns:
         result = result[~result["source"].isin(source_exclude)]
 
-    if asset_type == "petchem":
-        asset_col = "asset_name"
+    asset_col = "asset_name"
+    result = _split_asset_name_matches(result, asset_col=asset_col)
+
+    sector_rules = {
+        "petchem": {"conditions": petchem_conditions, "exclude_asset_matches": False},
+        "refinery": {"conditions": refine_conditions, "exclude_asset_matches": True},
+    }
+    rule = sector_rules.get(asset_type)
+
+    if rule:
         if asset_col in result.columns:
-            df_asset = result[result[asset_col].fillna("") != ""].copy()
-            if not df_asset.empty:
-                df_asset[["asset_id", "asset_name"]] = df_asset[asset_col].str.split("_", n=1, expand=True)
-                df_asset["asset_name"] = df_asset["asset_name"].str.split("_").str[0]
-            else:
-                df_asset = pd.DataFrame(columns=result.columns)
+            df_asset = result[result[asset_col].fillna("").astype(str) != ""].copy()
         else:
             df_asset = pd.DataFrame(columns=result.columns)
 
-        df_cond = result[result["tag"].str.contains(petchem_conditions, case=False, na=False)].copy()
+        df_cond = result[result["tag"].str.contains(rule["conditions"], case=False, na=False)].copy()
+        if rule["exclude_asset_matches"] and asset_col in df_cond.columns:
+            df_cond = df_cond[df_cond[asset_col].fillna("").astype(str) == ""]
         df_cond = df_cond[df_cond["tag_score"].fillna(0).astype(int) > 1]
         result = pd.concat([df_asset, df_cond], ignore_index=True).drop_duplicates(subset=["title"])
-        if asset_col in result.columns:
-            result.drop(columns=[asset_col], inplace=True)
 
-    if asset_type == "refinery":
-        asset_col = "asset_name"
-        if asset_col in result.columns:
-            df_asset = result[result[asset_col].fillna("") != ""].copy()
-            if not df_asset.empty:
-                df_asset[["asset_id", "asset_name"]] = df_asset[asset_col].str.split("_", n=1, expand=True)
-                df_asset["asset_name"] = df_asset["asset_name"].str.split("_").str[0]
-            else:
-                df_asset = pd.DataFrame(columns=result.columns)
-        else:
-            df_asset = pd.DataFrame(columns=result.columns)
-
-        df_cond = result[result["tag"].str.contains(refine_conditions, case=False, na=False)].copy()
-        if asset_col in df_cond.columns:
-            df_cond = df_cond[df_cond[asset_col].fillna("") == ""]
-        df_cond = df_cond[df_cond["tag_score"].fillna(0).astype(int) > 1]
-        result = pd.concat([df_asset, df_cond], ignore_index=True).drop_duplicates(subset=["title"])
+    if asset_col in result.columns:
+        result = result.drop(columns=[asset_col])
 
     drops = ["Unnamed: 0", "uid", "id", "ID", "Adaptation", "Emissions", "Technology", "desc_match", "value"]
     result = result.drop(columns=[col for col in drops if col in result.columns], errors="ignore")

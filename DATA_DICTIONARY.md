@@ -8,9 +8,9 @@ This document describes the `.xlsx`, `.xls`, and `.csv` files read or written by
 - Tag profile file passed to `--tag-profile`
 - Output file passed to `--output`
 
-## Asset Input File
+## Input Workbook
 
-Purpose: provides the refinery and/or petchem asset records used to build Google News search keywords and asset tags.
+Purpose: provides sector asset records used to build Google News search keywords and asset tags.
 
 Supported formats:
 
@@ -19,13 +19,19 @@ Supported formats:
 
 Workbook behavior:
 
-- If the workbook contains a `Refining` sheet, that sheet is treated as refinery input.
-- If the workbook contains a `Petrochemical` sheet, that sheet is treated as petrochemical plant input.
+- Each worksheet is treated as a separate asset type.
+- Asset type names are normalized from worksheet names to lowercase for matching and output, so `Refinery`, `REFINERY`, and `refinery` are treated the same.
+
+### Input Workbook Extensibility
+
+- This product was originally designed for monitoring operational changes at refining and petrochemical facilities. Additional tabs can be added to the input file as long as they follow the field requirements detailed below.
+- You can control the specific tabs included in a tool run by specifying target worksheet names in the `asset_types` field of your config file.
+
 
 
 ## Input Workbook Fields
 
-*Note: Refineries and petrochemical plants are referred to generically as "asset" in this section.*
+*Note: All sectors are referred to generically as "asset" in this section.*
 
 ### Required Fields
 
@@ -45,8 +51,8 @@ Workbook behavior:
 
 ### Notes:
 
-- All refinery columns are converted into candidate asset tags during processing, not just the required fields.
-- The `Name` value is shortened to the first `name_tolerance` words for keyword creation. `name_tolerance` can be set in your configuration file or left as the default value of 2.
+- All asset columns are converted into candidate asset tags during processing, not just the required fields.
+- The `Name` value is used in full for keyword creation and shortened to the first `name_tolerance` words only for asset-name tag phrases. `name_tolerance` can be set in your configuration file or left as the default value of 2.
 - Optional fields are utilized as additional tags after asset names are used to search for content. For example, if your input file contains "Imperial Oil Sarnia Refinery" as `Name` and "ExxonMobil" as `Ownership`, default behavior will search for "Imperial Oil" content, and then use "ExxonMobil" as a tag to search for in the returned results.
 
 
@@ -86,7 +92,7 @@ Core output fields:
 
 | Field | Expected | Description |
 | --- | --- | --- |
-| `asset_type` | Yes | Asset type processed for the row: `refinery` or `petchem`. |
+| `asset_type` | Yes | Asset type processed for the row, based on the normalized worksheet name. |
 | `title` | Yes | Google News article title. |
 | `source` | Yes | Google News source or publisher name. |
 | `description` | Yes | Cleaned Google News article summary text. |
@@ -99,7 +105,7 @@ Conditional output fields:
 
 | Field | Expected | Description |
 | --- | --- | --- |
-| `asset_id` | Sometimes | Asset identifier extracted when the row matched a refinery or petchem asset-name/company tag. |
+| `asset_id` | Sometimes | Asset identifier extracted when the row matched an asset-name tag. |
 | `asset_name` | Sometimes | Asset or company name extracted from the matched asset tag. |
 | `asset_country` | Sometimes | Asset country tag match carried through when present in the tag reference. |
 | `asset_owner` | Sometimes | Asset owner tag match carried through when present in the tag reference. |
@@ -113,8 +119,7 @@ Conditional output fields:
 
 These sample files help illustrate the supported shapes:
 
-- `OG_AssetsFull.xlsx`
-  - `Refining` columns: `ID`, `Name`,`Ownership`, `Country`, `Geographic Subdivision`, `TRACE Region`
-  - `Petrochemical` columns: `ID`, `Name`,`Ownership`, `Country`, `Geographic Subdivision`, `TRACE Region`
+- `AssetInput.xlsx`
+  - Example sector columns: `ID`, `Name`, `Ownership`, `Country`, `Geographic Subdivision`, `TRACE Region`
 - `tagProfile.xlsx`
   - Columns: `tag`, `phrase`, `tag category`

@@ -10,7 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from google_news import get_recent_articles
-from input_loader import load_asset_frames, load_tag_profile, write_table
+from input_loader import load_asset_frames, load_tag_profile, normalize_asset_type_name, write_table
 from tagging import (
     build_asset_inputs,
     combine_tag_sources,
@@ -123,7 +123,11 @@ def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
     asset_frames = load_asset_frames(config.asset_file, requested_asset_types=config.asset_types)
     extra_tags = load_tag_profile(config.tag_profile)
 
-    requested_types = config.asset_types or list(asset_frames.keys())
+    requested_types = (
+        [normalize_asset_type_name(asset_type) for asset_type in config.asset_types]
+        if config.asset_types
+        else list(asset_frames.keys())
+    )
     final_frames: list[pd.DataFrame] = []
 
     for asset_type in requested_types:
@@ -174,7 +178,7 @@ def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
 
 def build_parser(defaults: dict) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Local-only Google News RSS tagging pipeline for refinery and petchem asset files."
+        description="Local-only Google News RSS tagging pipeline for sector-based asset workbooks."
     )
     parser.add_argument("--config", help="Optional path to a JSON config file for default pipeline settings.")
     parser.add_argument("--asset-file", default=defaults["asset_file"], help="Path to the asset workbook or CSV input.")
@@ -187,9 +191,8 @@ def build_parser(defaults: dict) -> argparse.ArgumentParser:
     parser.add_argument(
         "--asset-types",
         nargs="+",
-        choices=["refinery", "petchem"],
         default=defaults["asset_types"],
-        help="Optional subset of asset types to run.",
+        help="Optional subset of workbook tabs to run, matched case-insensitively.",
     )
     parser.add_argument(
         "--geography",

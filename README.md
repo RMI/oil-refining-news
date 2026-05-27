@@ -1,5 +1,5 @@
 # Refining News Monitor
-Local-only pipeline for identifying Google News RSS articles related to oil refining and petrochemical assets, then tagging those articles with asset and profile tags from Excel or CSV inputs. This is a generalized version of a tool utilized by staff at RMI that utilizes reference databases within RMI's Azure environment.
+Local-only pipeline for identifying Google News RSS articles related to sector asset workbooks, then tagging those articles with asset and profile tags from Excel or CSV inputs. This is a generalized version of a tool utilized by staff at RMI that utilizes reference databases within RMI's Azure environment.
 
 ## What It Does
 
@@ -22,7 +22,8 @@ Local-only pipeline for identifying Google News RSS articles related to oil refi
 
 Supported asset inputs:
 
-- Excel workbooks with `Refinery` and/or `Petchem` sheets
+- Excel workbooks with one or more sector sheets
+- Each sheet is treated as an asset type, using the lowercased sheet name in the pipeline
 
 Required tag profile input:
 
@@ -40,7 +41,7 @@ Supported config keys are:
 - `asset_file`: File path to asset file
 - `output`: Target output filename
 - `tag_profile`: Tag profile file path
-- `asset_types`: Asset types you want included in the run
+- `asset_types`: Optional list of workbook tab names to include in the run
 - `geography`: Target geographies if providing and asset file with geography included
 - `lookback_min`: Start date of your target period
 - `lookback_max`: End date of your target period
@@ -87,6 +88,7 @@ The output file includes tagged Google News rows with fields such as:
 - The only supported entry point is `main.py`.
 - The project runs fully from local files plus Google News RSS.
 - JSON config files are optional; direct CLI usage still works. However, the config file provides more granular control over the process
+- `petchem` and `refinery` still use their existing sector-specific post-processing rules; other sheet types use the generic tagged-result flow
 
 ## Improvements
 - Incorporate paid news API source, such as SerpAPI, to broaden coverage
