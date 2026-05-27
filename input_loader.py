@@ -1,26 +1,17 @@
 from __future__ import annotations
-
 from pathlib import Path
-
 import pandas as pd
 
 
-REFINERY_COLUMN_ALIASES = {
+COLUMN_ALIASES = {
     "ID": ["ID", "id", "Refinery #ID", "Refinery # ID"],
     "Name": ["Name"],
+    "Owner": ["Owner","Ownership", "Primary Owner"],
     "Country": ["Country"],
-    "State": ["State"],
-    "Owner": ["Owner", "Primary Owner"],
+    "Subdivision": ["Geographic Subdivision", "State", "Province"],
+    "Region": ["Region", "TRACE Region", "Climate TRACE Region"],
 }
 
-PETCHEM_COLUMN_ALIASES = {
-    "ID": ["ID", "id", "PetchemID", "Petchem ID"],
-    "Name": ["Name", "Company"],
-    "Country": ["Country"],
-    "Owner": ["Owner", "Ownership"],
-    "Location": ["Location"],
-    "Region": ["Region", "TRACE region"],
-}
 
 
 def read_table(path: str | Path, sheet_name: str | None = None) -> pd.DataFrame:
@@ -70,7 +61,7 @@ def _rename_columns(df: pd.DataFrame, aliases: dict[str, list[str]]) -> pd.DataF
 
 
 def normalize_asset_columns(df: pd.DataFrame, asset_type: str) -> pd.DataFrame:
-    aliases = REFINERY_COLUMN_ALIASES if asset_type == "refinery" else PETCHEM_COLUMN_ALIASES
+    aliases = COLUMN_ALIASES.copy()
     return _rename_columns(df, aliases)
 
 
@@ -84,10 +75,10 @@ def load_asset_frames(asset_path: str | Path, requested_asset_types: list[str] |
     workbook = pd.ExcelFile(asset_path)
     frames: dict[str, pd.DataFrame] = {}
 
-    if "Refining" in workbook.sheet_names:
-        frames["refinery"] = normalize_asset_columns(pd.read_excel(asset_path, sheet_name="Refining"), "refinery")
-    if "Petrochemical" in workbook.sheet_names:
-        frames["petchem"] = normalize_asset_columns(pd.read_excel(asset_path, sheet_name="Petrochemical"), "petchem")
+    for sheet_name in workbook.sheet_names:
+        if requested_asset_types and sheet_name not in requested_asset_types:
+            continue
+        frames[sheet_name] = normalize_asset_columns(pd.read_excel(asset_path, sheet_name=sheet_name), sheet_name.lower())
 
     if frames:
         return frames

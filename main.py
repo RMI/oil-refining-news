@@ -12,8 +12,7 @@ import pandas as pd
 from google_news import get_recent_articles
 from input_loader import load_asset_frames, load_tag_profile, write_table
 from tagging import (
-    build_petchem_inputs,
-    build_refinery_inputs,
+    build_asset_inputs,
     combine_tag_sources,
     post_process_matches,
     tag_articles,
@@ -22,14 +21,7 @@ from tagging import (
 
 DEFAULT_GEOGRAPHY = ["United States of America", "United States", "Mexico", "Canada"]
 DEFAULT_SOURCE_EXCLUDE = [
-    "BioMed Central",
-    "ACS Applied Materials and Interfaces",
-    "Springer",
-    "Elsevier Journals",
-    "Science",
-    "The New Yorker",
-    "Nature",
-    "MIT Sloan Management Review",
+    "BioMed Central"
 ]
 
 
@@ -140,20 +132,12 @@ def run_pipeline(config: PipelineConfig) -> pd.DataFrame:
             continue
 
         asset_df = asset_frames[asset_type]
-        if asset_type == "refinery":
-            keywords, asset_tags = build_refinery_inputs(
-                asset_df,
-                geography=config.geography,
-                name_tolerance=config.name_tolerance,
-            )
-        elif asset_type == "petchem":
-            keywords, asset_tags = build_petchem_inputs(
-                asset_df,
-                geography=config.geography,
-                name_tolerance=config.name_tolerance,
-            )
-        else:
-            raise ValueError(f"Unsupported asset type: {asset_type}")
+        keywords, asset_tags = build_asset_inputs(
+            asset_df,
+            geography=config.geography,
+            name_tolerance=config.name_tolerance,
+            asset_label=asset_type.title(),
+        )
 
         if config.debug:
             keywords = keywords[:5]

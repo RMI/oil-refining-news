@@ -15,64 +15,26 @@ def _tag_category_name(column_name: str) -> str:
     return f"asset_{normalized}"
 
 
-def build_petchem_inputs(
+def build_asset_inputs(
     df: pd.DataFrame,
     geography: list[str] | None = None,
     name_tolerance: int = 2,
+    asset_label: str = "Asset",
 ) -> tuple[list[str], pd.DataFrame]:
-    petchem = df.copy()
+    assets = df.copy()
     required = {"ID", "Name"}
-    missing = required.difference(petchem.columns)
+    missing = required.difference(assets.columns)
     if missing:
-        raise ValueError(f"Petchem input is missing required columns: {sorted(missing)}")
-    if geography and "Country" in petchem.columns:
-        petchem = petchem[petchem["Country"].isin(geography)]
+        raise ValueError(f"{asset_label} input is missing required columns: {sorted(missing)}")
+    if geography and "Country" in assets.columns:
+        assets = assets[assets["Country"].isin(geography)]
 
-    tag_columns = ["ID", "Name"]
-    if "Country" in petchem.columns:
-        tag_columns.append("Country")
-    if "Owner" in petchem.columns:
-        tag_columns.append("Owner")
-    if "Location" in petchem.columns:
-        tag_columns.append("Location")
-    if "Region" in petchem.columns:
-        tag_columns.append("Region")
-
-    tags = petchem[tag_columns].copy()
+    keywords = assets["Name"].dropna().astype(str).drop_duplicates().tolist()
+    tags = assets.copy()
     tags["Name"] = tags["Name"].astype(str).str.split().str[:name_tolerance].str.join(" ")
     tags = tags.melt(id_vars="ID", var_name="tag_name", value_name="phrase").drop_duplicates(
         subset="phrase"
     )
-    tags["tag_cat"] = tags["tag_name"].apply(_tag_category_name)
-    tags["tag"] = tags["phrase"].astype(str)
-    tags.rename(columns={"ID": "id"}, inplace=True)
-    name_mask = tags["tag_cat"] == "asset_name"
-    tags.loc[name_mask, "tag"] = tags.loc[name_mask, "id"].astype(str) + "_" + tags.loc[
-        name_mask, "tag"
-    ]
-    tags["phrase"] = tags["phrase"].astype(str).str.lower()
-
-    keywords = petchem["Name"].dropna().astype(str).drop_duplicates().tolist()
-    return keywords, tags[["id", "tag_cat", "tag", "phrase"]]
-
-
-def build_refinery_inputs(
-    df: pd.DataFrame,
-    geography: list[str] | None = None,
-    name_tolerance: int = 2,
-) -> tuple[list[str], pd.DataFrame]:
-    refineries = df.copy()
-    required = {"ID", "Name"}
-    missing = required.difference(refineries.columns)
-    if missing:
-        raise ValueError(f"Refinery input is missing required columns: {sorted(missing)}")
-    if geography and "Country" in refineries.columns:
-        refineries = refineries[refineries["Country"].isin(geography)]
-
-    keywords = refineries["Name"].dropna().astype(str).drop_duplicates().tolist()
-    refineries["Name"] = refineries["Name"].astype(str).str.split().str[:name_tolerance].str.join(" ")
-
-    tags = refineries.melt(id_vars="ID", var_name="tag_name", value_name="phrase").drop_duplicates(subset="phrase")
     tags["tag_cat"] = tags["tag_name"].apply(_tag_category_name)
     tags["tag"] = tags["phrase"].astype(str)
     tags.dropna(subset=["phrase"], inplace=True)

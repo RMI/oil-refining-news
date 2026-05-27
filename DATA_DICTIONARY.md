@@ -23,52 +23,32 @@ Workbook behavior:
 - If the workbook contains a `Petrochemical` sheet, that sheet is treated as petrochemical plant input.
 
 
-### Refinery Asset Fields
+## Input Workbook Fields
 
-Required for refinery input:
+*Note: Refineries and petrochemical plants are referred to generically as "asset" in this section.*
 
-| Field | Required | Description |
-| --- | --- | --- |
-| `ID` | Yes | Unique refinery identifier. |
-| `Name` | Yes | Refinery name used to generate Google News search keywords. |
-
-Optional refinery fields:
+### Required Fields
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `Country` | No | Country filter field used when `--geography` is provided. |
-| `State` | No | Geographic subdivision for the refinery record. |
-| `Owner` | No | Primary owning company for the refinery asset. |
+| `ID` | Yes | Unique asset identifier. |
+| `Name` | Yes | Asset name used to generate Google News search keywords. |
 
-Notes:
+### Optional Fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `Ownership` | No | Primary owning company for the asset. |
+| `Country` | No | Country filter field used when `--geography` is provided. This field is required to enable country-level filtering of assets. |
+| `Subdivision` | No | Geographic subdivision for the asset, such as a state or province. |
+| `TRACE Region` | No | Region assigned to the country by the Climate TRACE team. |
+
+### Notes:
 
 - All refinery columns are converted into candidate asset tags during processing, not just the required fields.
-- The `Name` value is shortened to the first `name_tolerance` words when building one set of name-based tags. `name_tolerance` can be set in your configuration file or left as the default value of 2.
-- Legacy aliases mapped to this schema include `Refinery #ID`, `Refinery # ID`, `id`, and `Primary Owner`.
+- The `Name` value is shortened to the first `name_tolerance` words for keyword creation. `name_tolerance` can be set in your configuration file or left as the default value of 2.
+- Optional fields are utilized as additional tags after asset names are used to search for content. For example, if your input file contains "Imperial Oil Sarnia Refinery" as `Name` and "ExxonMobil" as `Ownership`, default behavior will search for "Imperial Oil" content, and then use "ExxonMobil" as a tag to search for in the returned results.
 
-### Petchem Asset Fields
-
-Required for petchem input:
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `ID` | Yes | Unique petchem asset identifier. |
-| `Name` | Yes | Petrochemical company label used to generate Google News search keywords. |
-
-Optional petchem fields:
-
-| Field | Required | Description |
-| --- | --- | --- |
-| `Country` | No | Country filter field used when `--geography` is provided. |
-| `Owner` | No | Full ownership mix for the facility. |
-| `Location` | No | City/State/Geographic subdivision of the facility. |
-| `Region` | No | Climate TRACE Region of the facility. |
-
-Notes:
-
-- The pipeline uses `Name` values as Google News search keywords.
-- `ID`, `Name`, and `Country` are used to build asset tags when present.
-- Legacy aliases mapped to this schema include `PetchemID`, `Petchem ID`, `Company`, `Ownership`, and `TRACE region`.
 
 ## Tag Profile File
 
@@ -123,25 +103,18 @@ Conditional output fields:
 | `asset_name` | Sometimes | Asset or company name extracted from the matched asset tag. |
 | `asset_country` | Sometimes | Asset country tag match carried through when present in the tag reference. |
 | `asset_owner` | Sometimes | Asset owner tag match carried through when present in the tag reference. |
-| `asset_state` | Sometimes | Refinery state tag match carried through when present in the tag reference. |
-| `asset_location` | Sometimes | Petchem location tag match carried through when present in the tag reference. |
-| `asset_region` | Sometimes | Petchem region tag match carried through when present in the tag reference. |
+| `asset_subdivision` | Sometimes | Asset subdivision tag match carried through when present in the tag reference. |
+| `asset_region` | Sometimes | Climate TRACE region tag match carried through when present in the tag reference. |
 | Other `asset_*` or custom tag category columns | Sometimes | Intermediate category match columns may appear depending on which tag categories survive post-processing. |
 
-Notes:
-
-- Output columns depend partly on the input asset columns and required tag profile categories.
-- The pipeline removes several internal helper columns before writing output, including `id`, `desc_match`, and `value`.
+*Note: Output columns depend partly on the input asset columns and required tag profile categories.*
 
 ## Sample Files In This Repo
 
 These sample files help illustrate the supported shapes:
 
 - `OG_AssetsFull.xlsx`
-  - Legacy `RefiningAsset` columns: `Refinery #ID`, `Name`, `Country`, `State`, `Primary Owner`
-  - Legacy `SteamCracker` columns: `PetchemID`, `Country`, `Company`, `Ownership`, `Location`, `TRACE region`
-  - Canonical equivalents: `ID`, `Name`, `Country`, `State`, `Owner` for refinery and `ID`, `Name`, `Country`, `Owner`, `Location`, `Region` for petchem
+  - `Refining` columns: `ID`, `Name`,`Ownership`, `Country`, `Geographic Subdivision`, `TRACE Region`
+  - `Petrochemical` columns: `ID`, `Name`,`Ownership`, `Country`, `Geographic Subdivision`, `TRACE Region`
 - `tagProfile.xlsx`
   - Columns: `tag`, `phrase`, `tag category`
-- `Tag Profile_emissionMitigation.xlsx`
-  - Columns: `tag category`, `tag`, `phrase`
