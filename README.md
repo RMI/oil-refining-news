@@ -1,12 +1,12 @@
 # Refining News Monitor
-Local-only pipeline for identifying Google News RSS articles related to oil refining and petrochemical assets, then tagging those articles with asset and profile tags from Excel or CSV inputs.
+Local-only pipeline for identifying Google News RSS articles related to oil refining and petrochemical assets, then tagging those articles with asset and profile tags from Excel or CSV inputs. This is a generalized version of a tool utilized by staff at RMI that utilizes reference databases within RMI's Azure environment.
 
 ## What It Does
 
 - Reads asset inputs from `.xlsx` or `.xls`
 - Reads a required local tag profile file
 - Pulls summary content from Google News RSS for each keyword
-- Applies local tagging logic without Azure, MySQL, or VPN access
+- Applies local tagging logic
 - Writes a tagged output file in Excel or CSV format
 
 ## Setup
