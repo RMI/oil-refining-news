@@ -11,6 +11,20 @@ Local-only pipeline for identifying Google News RSS articles related to sector a
 
 ## Setup
 
+### macOS: Install SSL Certificates
+
+If you installed Python from python.org on a Mac, you may need to install SSL certificates before the pipeline can make HTTPS requests. A symptom is an `SSL: CERTIFICATE_VERIFY_FAILED` error when running the tool.
+
+To fix it, run the certificate installer that ships with Python (adjust the version number to match your installation):
+
+```bash
+/Applications/Python\ 3.x/Install\ Certificates.command
+```
+
+This is a one-time step per Python installation.
+
+### Install dependencies
+
 1. Create a virtual environment:
    `python -m venv .venv`
 2. Activate it in PowerShell:
