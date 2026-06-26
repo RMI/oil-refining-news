@@ -27,7 +27,7 @@ Supported asset inputs:
 
 Required tag profile input:
 
-- a local Excel or CSV file with columns `tag_cat`, `tag`, and `phrase`
+- a local Excel or CSV file with columns `tag category`, `tag`, and `phrase`
 - this file is a core part of the tagging workflow and is required for every run
 
 Field-level details for supported input and output files are documented in [DATA_DICTIONARY.md](./DATA_DICTIONARY.md).
@@ -48,6 +48,7 @@ Supported config keys are:
 - `name_tolerance`: How many words from each asset name should be included for keyword searches
 - `max_items_per_keyword`: How many search results to return per asset
 - `source_exclude`: Names of any publications to exclude from output
+- `debug`: If true, limits keyword processing to the first 5 keywords per asset type
 
 
 Or keep the defaults in a local config file and reference that from the CLI:
@@ -59,7 +60,7 @@ python main.py --config .\pipeline_config.json
 Or run the supported CLI with default configuration:
 
 ```powershell
-python main.py --asset-file .\assets.xlsx --tag-profile .\tag-profile.xlsx --output .\output\tagged-google-news.xlsx
+python main.py --asset-file .\AssetInput.xlsx --tag-profile .\tagProfile.xlsx --output .\output\tagged-google-news.xlsx
 ```
 
 CLI flags still override config file values for one-off runs:
@@ -88,7 +89,7 @@ The output file includes tagged Google News rows with fields such as:
 - The only supported entry point is `main.py`.
 - The project runs fully from local files plus Google News RSS.
 - JSON config files are optional; direct CLI usage still works. However, the config file provides more granular control over the process
-- `petchem` and `refinery` still use their existing sector-specific post-processing rules; other sheet types use the generic tagged-result flow
+- `petrochemical` and `refining` still use their existing sector-specific post-processing rules; other sheet types use the generic tagged-result flow
 
 ## Improvements
 - Incorporate paid news API source, such as SerpAPI, to broaden coverage

@@ -145,8 +145,8 @@ def post_process_matches(
     result = _split_asset_name_matches(result, asset_col=asset_col)
 
     sector_rules = {
-        "petchem": {"conditions": petchem_conditions, "exclude_asset_matches": False},
-        "refinery": {"conditions": refine_conditions, "exclude_asset_matches": True},
+        "petrochemical": {"conditions": petchem_conditions, "exclude_asset_matches": False},
+        "refining": {"conditions": refine_conditions, "exclude_asset_matches": True},
     }
     rule = sector_rules.get(asset_type)
 
