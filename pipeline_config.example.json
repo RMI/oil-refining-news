@@ -2,7 +2,7 @@
   "asset_file": "AssetInput.xlsx",
   "output": "tempData/tagged_google_news.xlsx",
   "tag_profile": "tagProfile.xlsx",
-  "asset_types": ["refinery", "petchem"],
+  "asset_types": ["refining", "petrochemical"],
   "geography": ["United States of America", "United States", "Mexico", "Canada"],
   "lookback_min": "2026-04-19",
   "lookback_max": "2026-05-19",

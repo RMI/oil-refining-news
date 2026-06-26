@@ -186,7 +186,7 @@ def build_parser(defaults: dict) -> argparse.ArgumentParser:
     parser.add_argument(
         "--tag-profile",
         default=defaults["tag_profile"],
-        help="Required tag profile file with tag_cat, tag, and phrase columns.",
+        help="Required tag profile file with 'tag category', tag, and phrase columns.",
     )
     parser.add_argument(
         "--asset-types",
