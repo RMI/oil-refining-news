@@ -41,7 +41,9 @@ def build_asset_inputs(
     tags["phrase"] = tags["phrase"].astype(str).str.lower()
     tags.rename(columns={"ID": "id"}, inplace=True)
     name_mask = tags["tag_cat"] == "asset_name"
-    tags.loc[name_mask, "tag"] = tags.loc[name_mask, "id"].astype(str) + "_" + tags.loc[name_mask, "tag"]
+    name_tags = tags.loc[name_mask, "id"].astype(str) + "_" + tags.loc[name_mask, "tag"].astype(str)
+    tags = tags.copy()
+    tags.loc[name_mask, "tag"] = name_tags
 
     return keywords, tags[["id", "tag_cat", "tag", "phrase"]]
 
