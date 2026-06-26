@@ -20,7 +20,7 @@ Supported formats:
 Workbook behavior:
 
 - Each worksheet is treated as a separate asset type.
-- Asset type names are normalized from worksheet names to lowercase for matching and output, so `Refinery`, `REFINERY`, and `refinery` are treated the same.
+- Asset type names are normalized from worksheet names to lowercase for matching and output, so `Refining`, `REFINING`, and `refining` are treated the same.
 
 ### Input Workbook Extensibility
 
